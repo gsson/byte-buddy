@@ -1,6 +1,10 @@
 Byte Buddy release notes
 ------------------------
 
+### 15. July 2015: version 0.7
+ - Added support for generic types. Generic types are now retained when overridding methods.
+ - General API improvements to take generic types into account.
+
 ### 10. July 2015: version 0.6.12
 
 - Added API for altering a method's modifiers when intercepting it.
