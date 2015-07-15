@@ -1,3 +1,7 @@
+***
+**Warning**: Byte Buddy 0.7 is the first version to support generic types. Unfortunately, it does not yet add bridge methods what can cause problems when overriding methods with type variables in their signature. Use version 0.6.12 until this issue is resolved.
+***
+
 Byte Buddy
 ==========
 
