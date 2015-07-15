@@ -6,17 +6,18 @@ import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ByteArrayClassLoader;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.StubMethod;
+import net.bytebuddy.implementation.bytecode.constant.TextConstant;
+import net.bytebuddy.implementation.bytecode.member.MethodReturn;
 import net.bytebuddy.pool.TypePool;
 import net.bytebuddy.test.scope.GenericType;
 import net.bytebuddy.test.utility.ClassFileExtraction;
+import net.bytebuddy.test.utility.DebuggingWrapper;
 import net.bytebuddy.test.utility.JavaVersionRule;
 import org.hamcrest.core.Is;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.MethodRule;
 import org.objectweb.asm.Opcodes;
 
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static junit.framework.TestCase.assertEquals;
 import static net.bytebuddy.matcher.ElementMatchers.isTypeInitializer;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -178,6 +180,19 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
         assertThat(call.getGenericReturnType(), is((Type) interfaceType));
     }
 
+    @Test
+    @Ignore
+    public void testBridgeMethodCreation() throws Exception {
+        Class<?> dynamicType = create(BridgeRetention.Inner.class)
+                .method(named(FOO)).intercept(new Implementation.Simple(new TextConstant(FOO), MethodReturn.REFERENCE))
+                .make()
+                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                .getLoaded();
+        assertEquals(String.class, dynamicType.getDeclaredMethod("foo").getReturnType());
+        assertThat(dynamicType.getDeclaredMethod("foo").getGenericReturnType(), is((Type) String.class));
+        assertThat(((BridgeRetention.Inner)dynamicType.newInstance()).foo(), is(FOO));
+    }
+
     public @interface Baz {
 
         String foo();
@@ -195,6 +210,17 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
 
         public static void invoke() {
             bar = BAR;
+        }
+    }
+
+    public static class BridgeRetention<T> {
+
+        public T foo() {
+            return null;
+        }
+
+        public static class Inner extends BridgeRetention<String> {
+            /* empty */
         }
     }
 }
