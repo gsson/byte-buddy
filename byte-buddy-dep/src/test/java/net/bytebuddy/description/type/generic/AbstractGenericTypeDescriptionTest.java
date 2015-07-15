@@ -771,22 +771,18 @@ public abstract class AbstractGenericTypeDescriptionTest {
         GenericTypeDescription superType = genericTypeDescription.getSuperType();
         assertThat(superType.getSort(), is(GenericTypeDescription.Sort.NON_GENERIC));
         assertThat(superType.asRawType(), is((TypeDescription) new TypeDescription.ForLoadedType(TypeResolution.Base.class)));
-        assertThat(superType.getParameters().size(), is(0));
         assertThat(superType.getDeclaredFields().size(), is(1));
         assertThat(superType.getDeclaredFields().getOnly().getDeclaringType().getDeclaredFields().getOnly().getType(),
                 is(superType.getDeclaredFields().getOnly().getType()));
         GenericTypeDescription fieldType = superType.getDeclaredFields().getOnly().getType();
         assertThat(fieldType.getSort(), is(GenericTypeDescription.Sort.NON_GENERIC));
         assertThat(fieldType.asRawType(), is((TypeDescription) new TypeDescription.ForLoadedType(Qux.class)));
-        assertThat(fieldType.getParameters().size(), is(0));
         GenericTypeDescription methodReturnType = superType.getDeclaredMethods().filter(isMethod()).getOnly().getReturnType();
         assertThat(methodReturnType.getSort(), is(GenericTypeDescription.Sort.NON_GENERIC));
         assertThat(methodReturnType.asRawType(), is((TypeDescription) new TypeDescription.ForLoadedType(Qux.class)));
-        assertThat(methodReturnType.getParameters().size(), is(0));
         GenericTypeDescription methodParameterType = superType.getDeclaredMethods().filter(isMethod()).getOnly().getParameters().asTypeList().getOnly();
         assertThat(methodParameterType.getSort(), is(GenericTypeDescription.Sort.NON_GENERIC));
         assertThat(methodParameterType.asRawType(), is((TypeDescription) new TypeDescription.ForLoadedType(Qux.class)));
-        assertThat(methodParameterType.getParameters().size(), is(0));
         assertThat(superType.getDeclaredMethods().filter(isMethod()).getOnly().getDeclaringType().getDeclaredMethods().filter(isMethod()).getOnly().getReturnType(),
                 is(superType.getDeclaredMethods().filter(isMethod()).getOnly().getReturnType()));
         assertThat(superType.getDeclaredMethods().filter(isMethod()).getOnly().getDeclaringType().getDeclaredMethods().filter(isMethod()).getOnly().getParameters().getOnly().getType(),
@@ -801,16 +797,13 @@ public abstract class AbstractGenericTypeDescriptionTest {
         GenericTypeDescription interfaceType = genericTypeDescription.getInterfaces().getOnly();
         assertThat(interfaceType.getSort(), is(GenericTypeDescription.Sort.NON_GENERIC));
         assertThat(interfaceType.asRawType(), is((TypeDescription) new TypeDescription.ForLoadedType(TypeResolution.BaseInterface.class)));
-        assertThat(interfaceType.getParameters().size(), is(0));
         assertThat(interfaceType.getDeclaredFields().size(), is(0));
         GenericTypeDescription methodReturnType = interfaceType.getDeclaredMethods().filter(isMethod()).getOnly().getReturnType();
         assertThat(methodReturnType.getSort(), is(GenericTypeDescription.Sort.NON_GENERIC));
         assertThat(methodReturnType.asRawType(), is((TypeDescription) new TypeDescription.ForLoadedType(Qux.class)));
-        assertThat(methodReturnType.getParameters().size(), is(0));
         GenericTypeDescription methodParameterType = interfaceType.getDeclaredMethods().filter(isMethod()).getOnly().getParameters().asTypeList().getOnly();
         assertThat(methodParameterType.getSort(), is(GenericTypeDescription.Sort.NON_GENERIC));
         assertThat(methodParameterType.asRawType(), is((TypeDescription) new TypeDescription.ForLoadedType(Qux.class)));
-        assertThat(methodParameterType.getParameters().size(), is(0));
         assertThat(interfaceType.getDeclaredMethods().getOnly().getDeclaringType().getDeclaredMethods().getOnly().getReturnType(),
                 is(interfaceType.getDeclaredMethods().getOnly().getReturnType()));
         assertThat(interfaceType.getDeclaredMethods().getOnly().getDeclaringType().getDeclaredMethods().getOnly().getParameters().getOnly().getType(),

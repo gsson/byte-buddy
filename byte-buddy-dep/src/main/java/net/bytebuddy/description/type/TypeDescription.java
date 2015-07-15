@@ -336,7 +336,7 @@ public interface TypeDescription extends GenericTypeDescription, TypeVariableSou
 
         @Override
         public GenericTypeList getParameters() {
-            return new GenericTypeList.Empty();
+            throw new IllegalStateException("A non-generic type does not imply type parameters: " + this);
         }
 
         @Override
@@ -346,10 +346,7 @@ public interface TypeDescription extends GenericTypeDescription, TypeVariableSou
 
         @Override
         public TypeDescription getOwnerType() {
-            MethodDescription enclosingMethod = getEnclosingMethod();
-            return enclosingMethod == null
-                    ? getEnclosingType()
-                    : enclosingMethod.getDeclaringType().asRawType();
+            throw new IllegalStateException("A non-generic type does not imply an owner type: " + this);
         }
 
         @Override

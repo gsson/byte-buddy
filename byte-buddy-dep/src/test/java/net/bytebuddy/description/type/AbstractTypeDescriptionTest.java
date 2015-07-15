@@ -59,10 +59,14 @@ public abstract class AbstractTypeDescriptionTest extends AbstractGenericTypeDes
 
     protected abstract TypeDescription describe(Class<?> type);
 
-    @Test
-    public void testGenericTypeProperties() throws Exception {
-        assertThat(describe(Object.class).getOwnerType(), nullValue(GenericTypeDescription.class));
-        assertThat(describe(Object.class).getParameters().size(), is(0));
+    @Test(expected = IllegalStateException.class)
+    public void testNoOwnerType() throws Exception {
+        describe(Object.class).getOwnerType();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testNoParameters() throws Exception {
+        describe(Object.class).getParameters();
     }
 
     @Test(expected = IllegalStateException.class)

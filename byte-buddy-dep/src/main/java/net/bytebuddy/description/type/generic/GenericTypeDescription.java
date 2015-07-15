@@ -1700,9 +1700,9 @@ public interface GenericTypeDescription extends NamedElement {
              * @return Either a raw type, or a transformed generic type.
              */
             public static GenericTypeDescription check(GenericTypeDescription typeDescription, Visitor<? extends GenericTypeDescription> transformer) {
-                return typeDescription.getParameters().size() != typeDescription.asRawType().getTypeVariables().size()
-                        ? new Raw(typeDescription.asRawType())
-                        : typeDescription.accept(transformer);
+                return typeDescription.getSort().isParameterized()
+                        ? typeDescription.accept(transformer)
+                        : new Raw(typeDescription.asRawType());
             }
 
             @Override
