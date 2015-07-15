@@ -9,10 +9,12 @@ import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.StubMethod;
+import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.constant.TextConstant;
 import net.bytebuddy.implementation.bytecode.member.MethodReturn;
 import net.bytebuddy.pool.TypePool;
 import net.bytebuddy.test.scope.GenericType;
+import net.bytebuddy.test.utility.CallTraceable;
 import net.bytebuddy.test.utility.ClassFileExtraction;
 import net.bytebuddy.test.utility.DebuggingWrapper;
 import net.bytebuddy.test.utility.JavaVersionRule;
@@ -181,7 +183,7 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
     }
 
     @Test
-    @Ignore
+    @Ignore("Fails because of missing bridge methods")
     public void testBridgeMethodCreation() throws Exception {
         Class<?> dynamicType = create(BridgeRetention.Inner.class)
                 .method(named(FOO)).intercept(new Implementation.Simple(new TextConstant(FOO), MethodReturn.REFERENCE))
@@ -191,6 +193,22 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
         assertEquals(String.class, dynamicType.getDeclaredMethod("foo").getReturnType());
         assertThat(dynamicType.getDeclaredMethod("foo").getGenericReturnType(), is((Type) String.class));
         assertThat(((BridgeRetention.Inner)dynamicType.newInstance()).foo(), is(FOO));
+    }
+
+    @Test
+    @Ignore("Only works because of forgiving JVM")
+    public void testBridgeMethodSuperTypeInvocation() throws Exception {
+        Class<?> dynamicType = create(SuperCall.Inner.class)
+                .method(named(FOO)).intercept(SuperMethodCall.INSTANCE)
+                .classVisitor(DebuggingWrapper.makeDefault())
+                .make()
+                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                .getLoaded();
+        assertEquals(String.class, dynamicType.getDeclaredMethod(FOO, String.class).getReturnType());
+        assertThat(dynamicType.getDeclaredMethod(FOO, String.class).getGenericReturnType(), is((Type) String.class));
+        SuperCall<String> superCall = (SuperCall.Inner) dynamicType.newInstance();
+        assertThat(superCall.foo(FOO), is(FOO));
+        superCall.assertOnlyCall(FOO);
     }
 
     public @interface Baz {
@@ -220,6 +238,18 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
         }
 
         public static class Inner extends BridgeRetention<String> {
+            /* empty */
+        }
+    }
+
+    public static class SuperCall<T> extends CallTraceable {
+
+        public T foo(T value) {
+            register(FOO);
+            return value;
+        }
+
+        public static class Inner extends SuperCall<String> {
             /* empty */
         }
     }

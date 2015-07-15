@@ -12,6 +12,7 @@ import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.Implementation;
 import net.bytebuddy.implementation.StubMethod;
+import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bytecode.constant.TextConstant;
 import net.bytebuddy.implementation.bytecode.member.MethodReturn;
 import net.bytebuddy.test.scope.GenericType;
@@ -22,7 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.MethodRule;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.util.ASMifier;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
@@ -38,6 +38,7 @@ import static net.bytebuddy.matcher.ElementMatchers.isDeclaredBy;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotEquals;
@@ -353,16 +354,34 @@ public class SubclassDynamicTypeBuilderTest extends AbstractDynamicTypeBuilderTe
     }
 
     @Test
-    @Ignore
+    @Ignore("Fails because of missing bridge methods")
     public void testBridgeMethodCreation() throws Exception {
         Class<?> dynamicType = create(BridgeRetention.Inner.class)
                 .method(named(FOO)).intercept(new Implementation.Simple(new TextConstant(FOO), MethodReturn.REFERENCE))
                 .make()
                 .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
                 .getLoaded();
-        assertEquals(String.class, dynamicType.getDeclaredMethod("foo").getReturnType());
-        assertThat(dynamicType.getDeclaredMethod("foo").getGenericReturnType(), is((Type) String.class));
-        assertThat(((BridgeRetention.Inner)dynamicType.newInstance()).foo(), is(FOO));
+        assertEquals(String.class, dynamicType.getDeclaredMethod(FOO).getReturnType());
+        assertThat(dynamicType.getDeclaredMethod(FOO).getGenericReturnType(), is((Type) String.class));
+        BridgeRetention.Inner inner = (BridgeRetention.Inner) dynamicType.newInstance();
+        assertThat(inner.foo(), is(FOO));
+        inner.assertZeroCalls();
+    }
+
+    @Test
+    @Ignore("Only works because of forgiving JVM")
+    public void testBridgeMethodSuperTypeInvocation() throws Exception {
+        Class<?> dynamicType = create(SuperCall.Inner.class)
+                .method(named(FOO)).intercept(SuperMethodCall.INSTANCE)
+                .classVisitor(DebuggingWrapper.makeDefault())
+                .make()
+                .load(getClass().getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                .getLoaded();
+        assertEquals(String.class, dynamicType.getDeclaredMethod(FOO, String.class).getReturnType());
+        assertThat(dynamicType.getDeclaredMethod(FOO, String.class).getGenericReturnType(), is((Type) String.class));
+        SuperCall<String> superCall = (SuperCall.Inner) dynamicType.newInstance();
+        assertThat(superCall.foo(FOO), is(FOO));
+        superCall.assertOnlyCall(FOO);
     }
 
     @Test
@@ -434,13 +453,26 @@ public class SubclassDynamicTypeBuilderTest extends AbstractDynamicTypeBuilderTe
         }
     }
 
-    public static class BridgeRetention<T> {
+    public static class BridgeRetention<T> extends CallTraceable {
 
         public T foo() {
+            register(FOO);
             return null;
         }
 
         public static class Inner extends BridgeRetention<String> {
+            /* empty */
+        }
+    }
+
+    public static class SuperCall<T> extends CallTraceable {
+
+        public T foo(T value) {
+            register(FOO);
+            return value;
+        }
+
+        public static class Inner extends SuperCall<String> {
             /* empty */
         }
     }
