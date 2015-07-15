@@ -18,7 +18,6 @@ import net.bytebuddy.test.utility.CallTraceable;
 import net.bytebuddy.test.utility.ClassFileExtraction;
 import net.bytebuddy.test.utility.DebuggingWrapper;
 import net.bytebuddy.test.utility.JavaVersionRule;
-import org.hamcrest.core.Is;
 import org.junit.*;
 import org.junit.rules.MethodRule;
 import org.objectweb.asm.Opcodes;
@@ -33,9 +32,7 @@ import java.util.concurrent.Callable;
 import static junit.framework.TestCase.assertEquals;
 import static net.bytebuddy.matcher.ElementMatchers.isTypeInitializer;
 import static net.bytebuddy.matcher.ElementMatchers.named;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -85,6 +82,17 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
                 .getLoaded();
         assertThat(dynamicType.getDeclaredMethods().length, is(1));
         assertThat(dynamicType.getDeclaredMethod(FOO).getDefaultValue(), is((Object) FOO));
+    }
+
+    @Test
+    public void testTypeRenaming() throws Exception {
+        Class<?> dynamicType = create(OriginalName.class)
+                .name(TargetName.class.getName())
+                .make()
+                .load(new URLClassLoader(new URL[0], null), ClassLoadingStrategy.Default.WRAPPER)
+                .getLoaded();
+        assertThat(dynamicType.getName(), is(TargetName.class.getName()));
+        assertThat(dynamicType.getDeclaredMethod(FOO).invoke(dynamicType.newInstance()), is((Object) FOO));
     }
 
     @Test
@@ -192,7 +200,7 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
                 .getLoaded();
         assertEquals(String.class, dynamicType.getDeclaredMethod("foo").getReturnType());
         assertThat(dynamicType.getDeclaredMethod("foo").getGenericReturnType(), is((Type) String.class));
-        assertThat(((BridgeRetention.Inner)dynamicType.newInstance()).foo(), is(FOO));
+        assertThat(((BridgeRetention.Inner) dynamicType.newInstance()).foo(), is(FOO));
     }
 
     @Test
@@ -251,6 +259,20 @@ public abstract class AbstractDynamicTypeBuilderForInliningTest extends Abstract
 
         public static class Inner extends SuperCall<String> {
             /* empty */
+        }
+    }
+
+    public static class OriginalName {
+
+        public String foo() {
+            return FOO;
+        }
+    }
+
+    public static class TargetName {
+
+        public String foo() {
+            return BAR;
         }
     }
 }
