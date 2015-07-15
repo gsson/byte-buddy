@@ -1198,7 +1198,7 @@ public abstract class AbstractGenericTypeDescriptionTest {
             /* empty */
         }
 
-        public static class NestedIntermediate<V, W> extends Base<List<List<V>>, List<String>> implements BaseInterface<List<List<V>>, List<String>> {
+        public static class NestedIntermediate<V, W> extends Base<List<List<V[]>>, List<String>> implements BaseInterface<List<List<V[]>>, List<String>> {
             /* empty */
         }
 

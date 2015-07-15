@@ -170,6 +170,7 @@ public class GenericSignatureResolutionTest {
         assertThat(createdType.getInterfaces(), is(originalType.getInterfaces()));
     }
 
+    @SuppressWarnings("unused")
     public static abstract class GenericType<T extends ArrayList<T> & Callable<T>,
             S extends Callable<?>,
             U extends Callable<? extends Callable<U>>,
@@ -178,6 +179,7 @@ public class GenericSignatureResolutionTest {
 
     }
 
+    @SuppressWarnings("unused")
     public static class GenericMethod {
 
         <T extends Exception & Callable<T>> T foo(T arg) throws T {
@@ -185,39 +187,48 @@ public class GenericSignatureResolutionTest {
         }
     }
 
+    @SuppressWarnings("unused")
     public static class GenericField<T> {
 
         T foo;
     }
 
+    @SuppressWarnings("unused")
     public static class TypeVariableClassBound<T extends ArrayList<T>> {
         /* empty */
     }
 
+    @SuppressWarnings("unused")
     public static abstract class TypeVariableInterfaceBound<T extends Callable<T>> {
         /* empty */
     }
 
+    @SuppressWarnings("unused")
     public static abstract class TypeVariableClassAndInterfaceBound<T extends ArrayList<T> & Callable<T>> {
         /* empty */
     }
 
+    @SuppressWarnings("unused")
     public static class TypeVariableWildcardNoBound<T extends ArrayList<?>> {
         /* empty */
     }
 
+    @SuppressWarnings("unused")
     public static class TypeVariableWildcardUpperClassBound<T extends ArrayList<? extends ArrayList<T>>> {
         /* empty */
     }
 
+    @SuppressWarnings("unused")
     public static class TypeVariableWildcardUpperInterfaceBound<T extends ArrayList<? extends Callable<T>>> {
         /* empty */
     }
 
+    @SuppressWarnings("unused")
     public static class TypeVariableWildcardLowerClassBound<T extends ArrayList<? super ArrayList<T>>> {
         /* empty */
     }
 
+    @SuppressWarnings("unused")
     public static class TypeVariableWildcardLowerInterfaceBound<T extends ArrayList<? super Callable<T>>> {
         /* empty */
     }
